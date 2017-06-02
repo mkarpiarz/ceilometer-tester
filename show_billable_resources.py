@@ -16,8 +16,11 @@ def main():
                                user_domain_id='default',
                                project_domain_id='default')
 
-    print( cclient.samples.list() )
-    print( cclient.events.list() )
+    #print( cclient.samples.list() )
+    query_samples = [dict(field='source', op='eq', value='instance')]
+    print( cclient.samples.list( q=query_samples ) )
+    query_events = [dict(field='compute.instance.exists', op ='eq', value='compute.instance.exists')]
+    print( cclient.events.list( q=query_events, limit=10 ) )
 
 if __name__ == "__main__":
     main()
