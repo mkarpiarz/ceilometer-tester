@@ -1,0 +1,8 @@
+== TODO #1 [3/06/2017]
+Parse the output from the new class from JSON to a Python structure.
+
+== TODO #2 [3/06/2017]
+Add a function to pull meters - similar to the one for samples.
+
+== TODO #3 [3/06/2017]
+Implement a routine to measure time needed for queries to return.
