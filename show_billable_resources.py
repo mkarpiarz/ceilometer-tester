@@ -2,7 +2,8 @@
 import os
 from keystoneauth1.identity import v3
 from keystoneauth1 import session
-import ceilometerclient.client
+#import ceilometerclient.client
+import ceilomarius
 
 def main():
     if not os.environ.get('OS_CEILOMETER_URL'):
@@ -21,17 +22,20 @@ def main():
     token = auth.get_token(sess)
 
     # use the token with ceilometer's endpoint
-    cclient = ceilometerclient.client.get_client(2,
-                               os_endpoint=os.environ['OS_CEILOMETER_URL'],
-                               os_token=token)
-
-    print( cclient.alarms.list() )
-    exit(0)
-    #print( cclient.samples.list() )
-    query_samples = [dict(field='source', op='eq', value='instance')]
-    print( cclient.samples.list( q=query_samples ) )
-    query_events = [dict(field='compute.instance.exists', op ='eq', value='compute.instance.exists')]
-    print( cclient.events.list( q=query_events, limit=10 ) )
+    # NOTE: Sadly, the official client doesn't seem to work with the `limit` parameter.
+    # NOTE: Use the new custom class.
+    #
+    #cclient = ceilometerclient.client.get_client(2,
+    #                           os_endpoint=os.environ['OS_CEILOMETER_URL'],
+    #                           os_token=token)
+    #query_samples = [dict(field='meter', op='eq', value='instance')]
+    #print( cclient.samples.list( q=query_samples, limit=1 ) )
+    ceilomar = ceilomarius.Ceilomarius(api_version=2,
+                                        endpoint=os.environ['OS_CEILOMETER_URL'],
+                                        token=token,
+                                        verbose = True)
+    query = [{"field": "meter", "op": "eq", "value": "instance"}]
+    print( ceilomar.get_samples(q=query, limit=1) )
 
 if __name__ == "__main__":
     main()
