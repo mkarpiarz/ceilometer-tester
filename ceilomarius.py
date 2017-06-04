@@ -8,21 +8,28 @@ class Ceilomarius:
         self.token = token
         self.verbose = verbose
 
-    def get_samples(self, q = [], limit = 10):
-        headers = {'User-Agent': 'ceilomariusclient',
+    def get_metric(self, meter_name, q = [], limit = 10):
+        headers = {'User-Agent': 'ceilomarius',
                    'X-Auth-Token': str(self.token),
                    'Content-Type': 'application/json'}
         query = {"limit": limit}
         if q:
             query["q"] = q
-        url = self.endpoint + '/v' + str(self.api_version) + '/samples'
+        url = self.endpoint + '/v' + str(self.api_version) + '/meters/' + meter_name
         if self.verbose:
-            print("URL: %s" % url)
-            print("HEADERS: %s" % headers)
-            print("QUERY: %s" % query)
+            print( "INFO: Parameters of the request:" )
+            print( "INFO: > url: %s" % url )
+            print( "INFO: > headers: %s" % headers )
+            print( "INFO: > query: %s" % query )
 
         req = requests.get(url = url, json = query, headers = headers)
-        return req.text
+
+        if self.verbose:
+            print( "INFO: Got the response: {} [{}] at {}".format(req.status_code, req.reason, req.headers.get('date')) )
+            print( "INFO: Your request ID: %s" % req.headers.get('x-openstack-request-id') )
+            print( "INFO: The whole operation took: %s [h:m:s.us]" % req.elapsed )
+
+        return req
 
 def main():
     ceilo = Ceilomarius(api_version = 2,
@@ -30,8 +37,8 @@ def main():
                         token = os.environ['OS_TOKEN'],
                         verbose = True)
 
-    query = [{"field": "meter", "op": "eq", "value": "instance"}]
-    print( ceilo.get_samples(q=query, limit=1) )
+    query = [{"field": "metadata.event_type", "op": "eq", "value": "compute.instance.exists"}]
+    print( ceilo.get_metric(meter_name="instance", q=query, limit=1).json() )
 
 if __name__ == "__main__":
     main()

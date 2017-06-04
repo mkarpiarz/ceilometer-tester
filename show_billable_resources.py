@@ -34,8 +34,8 @@ def main():
                                         endpoint=os.environ['OS_CEILOMETER_URL'],
                                         token=token,
                                         verbose = True)
-    query = [{"field": "meter", "op": "eq", "value": "instance"}]
-    print( ceilomar.get_samples(q=query, limit=1) )
+    query = [{"field": "metadata.event_type", "op": "eq", "value": "compute.instance.exists"}]
+    print( ceilomar.get_metric(meter_name="instance", q=query, limit=1).json() )
 
 if __name__ == "__main__":
     main()
