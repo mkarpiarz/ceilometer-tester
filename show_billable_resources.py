@@ -26,8 +26,18 @@ def main():
                                         endpoint=os.environ['OS_CEILOMETER_URL'],
                                         token=token,
                                         verbose = True)
-    query = [{"field": "metadata.event_type", "op": "eq", "value": "compute.instance.exists"}]
-    print( ceilomar.get_metric(meter_name="instance", q=query, limit=1).json() )
+
+    # read queries from a file
+    with open('queries.txt', 'r') as f:
+        header_line = f.readline()
+        for line in f:
+            query = []
+            (meter_name, limit, query_params) = line.strip().split('\t')
+            query_elems = query_params.split(',')
+            for item in query_elems:
+                (field, value) = item.split('=')
+                query.append({"field": field, "op": "eq", "value": value})
+            print( ceilomar.get_metric(meter_name=meter_name, q=query, limit=int(limit)).json() )
 
 if __name__ == "__main__":
     main()
