@@ -26,3 +26,16 @@ A new class responsible for interacting with the Ceilometer's API and using the 
 
 == Problem #2 [5/06/2017]
 The format of the input file with queries has a convoluted formatting and only supports the "=" operator for now.
+
+== Problem #3 [5/06/2017]
+The file with queries can't have an empty "queries" column, as the current code always breaks the input line into a 3-object tuple:
+
+-------
+Traceback (most recent call last):
+  File "show_billable_resources.py", line 46, in <module>
+    main()
+  File "show_billable_resources.py", line 35, in main
+    (meter_name, limit, query_params) = line.strip().split('\t')
+ValueError: need more than 2 values to unpack
+-------
+A workaround for this bug is to always add a parameter like `project_id` to the "queries" column.

@@ -25,7 +25,7 @@ def main():
     ceilomar = ceilomarius.Ceilomarius(api_version=2,
                                         endpoint=os.environ['OS_CEILOMETER_URL'],
                                         token=token,
-                                        verbose = True)
+                                        verbose=False)
 
     # read queries from a file
     with open('queries.txt', 'r') as f:
@@ -37,7 +37,10 @@ def main():
             for item in query_elems:
                 (field, value) = item.split('=')
                 query.append({"field": field, "op": "eq", "value": value})
-            print( ceilomar.get_metric(meter_name=meter_name, q=query, limit=int(limit)).json() )
+            resp = ceilomar.get_metric(meter_name=meter_name, q=query, limit=int(limit))
+            #print( resp.json() )
+            for item in resp.json():
+                print( "meter: {meter},  resource_id: {resource_id}\nquery: {query}\ntimestamp: {timestamp}".format( meter=meter_name, resource_id=item.get('resource_id'), query=query, timestamp=item.get('timestamp') ) )
 
 if __name__ == "__main__":
     main()
