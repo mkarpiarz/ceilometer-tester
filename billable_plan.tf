@@ -1,3 +1,12 @@
+# Variables
+variable "flavour_id"{
+  default = "f0577618-9125-4948-b450-474e225bbc4c"
+}
+variable "image_id" {
+  default = "73fb2fff-64bf-415f-82ec-b63bbb04b3cf"
+}
+variable "key_pair" {}
+
 # A test load balancer (v1) with all the network resources created
 # created from scratch and test instances as members.
 # https://www.terraform.io/docs/providers/openstack/r/lb_pool_v1.html
@@ -34,6 +43,9 @@ resource "openstack_compute_secgroup_v2" "secgroup_1" {
 
 resource "openstack_compute_instance_v2" "instance_1" {
   name            = "instance_1"
+  image_id        = "${var.image_id}"
+  flavor_id       = "${var.flavour_id}"
+  key_pair        = "${var.key_pair}"
   security_groups = ["default", "${openstack_compute_secgroup_v2.secgroup_1.name}"]
 
   network {
@@ -43,6 +55,9 @@ resource "openstack_compute_instance_v2" "instance_1" {
 
 resource "openstack_compute_instance_v2" "instance_2" {
   name            = "instance_2"
+  image_id        = "${var.image_id}"
+  flavor_id       = "${var.flavour_id}"
+  key_pair        = "${var.key_pair}"
   security_groups = ["default", "${openstack_compute_secgroup_v2.secgroup_1.name}"]
 
   network {

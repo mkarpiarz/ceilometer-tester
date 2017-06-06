@@ -1,0 +1,15 @@
+== Launching a billable plan
+
+You'll need to download terraform for this.
+https://www.terraform.io/downloads.html
+
+With terraform installed, execute this command to create all the resources in your project with your keypair:
+-------
+/path/to/terraform apply -var 'key_pair=<your-keypair-name>'
+-------
+This will use `dc1.1x1` as a flavour and `Ubuntu 16.04.2 LTS (Xenial)` as a image for instances created by the plan.
+You can change the default flavour and image by passing them as variables:
+-------
+/path/to/terraform apply -var 'flavour_id=f0577618-9125-4948-b450-474e225bbc4c' -var 'image_id=73fb2fff-64bf-415f-82ec-b63bbb04b3cf' -var 'key_pair=<your-keypair-name>'
+-------
+Substitute `apply` with `destroy` to clean up afterwards.
