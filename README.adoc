@@ -13,3 +13,14 @@ You can change the default flavour and image by passing them as variables:
 /path/to/terraform apply -var 'flavour_id=f0577618-9125-4948-b450-474e225bbc4c' -var 'image_id=73fb2fff-64bf-415f-82ec-b63bbb04b3cf' -var 'key_pair=<your-keypair-name>'
 -------
 Substitute `apply` with `destroy` to clean up afterwards.
+
+== Pulling meters
+This is the main script:
+-------
+python show_billable_resources.py
+-------
+This will try and execute queries specified in the `queries.txt` file.
+To get a more verbose output, add the `--verbose` flag:
+-------
+python show_billable_resources.py --verbose
+-------

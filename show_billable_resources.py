@@ -2,12 +2,22 @@ import os
 import credentials
 #import ceilometerclient.client
 import ceilomarius
+import argparse
 
 def main():
     if not os.environ.get('OS_CEILOMETER_URL'):
         print("ERROR: $OS_CEILOMETER_URL variable not set!")
         print("Use this as an example: OS_CEILOMETER_URL=https://compute.datacentred.io:8777")
         exit(1)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--verbose", help="increase output verbosity", action="store_true")
+    args = parser.parse_args()
+
+    verbose = False
+    if args.verbose:
+        print("INFO: Verbosity turned on.")
+        verbose = True
 
     # get a token
     creds = credentials.Credentials()
@@ -25,7 +35,7 @@ def main():
     ceilomar = ceilomarius.Ceilomarius(api_version=2,
                                         endpoint=os.environ['OS_CEILOMETER_URL'],
                                         token=token,
-                                        verbose=False)
+                                        verbose=verbose)
 
     # read queries from a file
     with open('queries.txt', 'r') as f:
@@ -38,7 +48,9 @@ def main():
                 (field, value) = item.split('=')
                 query.append({"field": field, "op": "eq", "value": value})
             resp = ceilomar.get_metric(meter_name=meter_name, q=query, limit=int(limit))
-            #print( resp.json() )
+            if verbose:
+                print("DEBUG: The response:")
+                print( resp.json() )
             for item in resp.json():
                 print( "meter: {meter},  resource_id: {resource_id}\nquery: {query}\ntimestamp: {timestamp}".format( meter=meter_name, resource_id=item.get('resource_id'), query=query, timestamp=item.get('timestamp') ) )
 
