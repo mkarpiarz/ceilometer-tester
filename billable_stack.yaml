@@ -1,6 +1,6 @@
-heat_template_version: 2013-05-23
+heat_template_version: 2015-04-30
 
-description: Simple template create billable resources.
+description: A simple template to create billable resources.
 
 parameters:
   image:
@@ -18,11 +18,6 @@ parameters:
     label: Key name
     description: Name of key-pair to be used for compute instance
     default: my_key
-  private_network:
-    type: string
-    label: Private network name or ID
-    description: Network to attach instance to.
-    default: private-net
   public_network:
     type: string
     label: Public network name or ID
@@ -40,16 +35,6 @@ parameters:
     default: '8.8.8.8'
 
 resources:
-# Instance
-  my_instance:
-    type: OS::Nova::Server
-    properties:
-      image: { get_param: image }
-      flavor: { get_param: flavor }
-      key_name: { get_param: key }
-      networks:
-        - network: { get_param: private_network }
-
 # Router with a subnet
   private_network:
     type: OS::Neutron::Net
@@ -101,10 +86,58 @@ resources:
       port_id: { get_resource: flasky_port }
 
 # Volume
-my_volume:
-  type: OS::Cinder::Volume
+  my_volume:
+    type: OS::Cinder::Volume
     properties:
       size: 1
+
+# LBaaS v1
+  monitor:
+    type: OS::Neutron::HealthMonitor
+    properties:
+      type: TCP
+      delay: 5
+      max_retries: 5
+      timeout: 5
+  pool:
+    type: OS::Neutron::Pool
+    properties:
+      protocol: HTTP
+      monitors: [{ get_resource: monitor }]
+      subnet_id: { get_resource: private_subnet }
+      lb_method: ROUND_ROBIN
+      vip:
+        protocol_port: 80
+  lb:
+    type: OS::Neutron::LoadBalancer
+    properties:
+      protocol_port: 80
+      pool_id: { get_resource: pool }
+
+# VPNaaS v1
+  vpn_monitor:
+    type: OS::Neutron::VPNService
+    properties:
+      subnet_id: { get_resource: private_subnet }
+      router_id: { get_resource: router }
+  ipsecpolicy:
+    type: OS::Neutron::IPsecPolicy
+    properties:
+      description: An IPsec policy
+  ikepolicy:
+    type: OS::Neutron::IKEPolicy
+    properties:
+      description: An IKE policy
+  site_connection:
+    type: OS::Neutron::IPsecSiteConnection
+    properties:
+      ikepolicy_id: { get_resource: ikepolicy }
+      ipsecpolicy_id: { get_resource: ipsecpolicy }
+      peer_address: 8.8.8.8
+      peer_cidrs: [ 10.10.11.0/24 ]
+      peer_id: placeholder
+      psk: secret
+      vpnservice_id: { get_resource: vpn_monitor }
 
 #outputs:
 #  instance_ip:
