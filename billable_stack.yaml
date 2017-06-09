@@ -120,6 +120,7 @@ resources:
     properties:
       subnet_id: { get_resource: private_subnet }
       router_id: { get_resource: router }
+    depends_on: [ private_subnet, router, router-interface ]
   ipsecpolicy:
     type: OS::Neutron::IPsecPolicy
     properties:
