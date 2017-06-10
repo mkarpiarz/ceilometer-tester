@@ -44,19 +44,23 @@ class Ceilomarius:
         if self.verbose:
             print( "INFO: Links associated with url %s:" % url )
             print( links )
-            if not links:
-                print( "WARNING: Empty list of links!" )
 
-        query = [{"field": "resource_id", "op": "eq", "value": str(resource.id)}]
-        # this dict will store responses associated with the specific meter name
-        meters = dict()
-        for link in links:
-            # the name of the meter can be retrieved from the 'rel' key
-            rel = link.get('rel')
-            # ignore the reference to the original url (where rel == 'self'):
-            if rel != 'self':
-                meters[rel] = self.get_metric(meter_name=rel, q=query, limit=limit).json()
-        return meters
+        # check whether we have get meters
+        if links:
+            query = [{"field": "resource_id", "op": "eq", "value": str(resource.id)}]
+            # this dict will store responses associated with the specific meter name
+            meters = dict()
+            for link in links:
+                # the name of the meter can be retrieved from the 'rel' key
+                rel = link.get('rel')
+                # ignore the reference to the original url (where rel == 'self'):
+                if rel != 'self':
+                    meters[rel] = self.get_metric(meter_name=rel, q=query, limit=limit).json()
+            return meters
+        else:
+            if self.verbose:
+                print( "WARNING: Empty list of links! Skipping the resource." )
+            return {}
 
 def main():
     ceilo = Ceilomarius(api_version = 2,
