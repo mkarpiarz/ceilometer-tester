@@ -1,2 +1,0 @@
-meter_name	limit	queries
-instance	1	metadata.event_type=compute.instance.exists,project_id=697ea458e9dd4aadad80183c87b5f6c4

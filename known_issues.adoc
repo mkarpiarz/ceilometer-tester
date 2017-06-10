@@ -1,4 +1,4 @@
-== Problem #1 [3/06/2017]
+== Problem #1 [3/06/2017] (PARTIALLY FIXED)
 Looks like the `limit` parameter causes the client to crash:
 -------
 Traceback (most recent call last):
@@ -24,10 +24,13 @@ ceilometerclient.apiclient.exceptions.BadRequest: Unknown argument: "limit" (HTT
 == Solution to problem #1 [3/06/2017]
 A new class responsible for interacting with the Ceilometer's API and using the `requests` Python library has been written from scratch.
 
-== Problem #2 [5/06/2017]
+== Problem #2 [5/06/2017] (FIXED)
 The format of the input file with queries has a convoluted formatting and only supports the "=" operator for now.
 
-== Problem #3 [5/06/2017]
+== Solution to problem #2 [10/06/2017]
+This file is no longer needed due to the recent re-design of the tester.
+
+== Problem #3 [5/06/2017] (FIXED)
 The file with queries can't have an empty "queries" column, as the current code always breaks the input line into a 3-object tuple:
 
 -------
@@ -39,3 +42,9 @@ Traceback (most recent call last):
 ValueError: need more than 2 values to unpack
 -------
 A workaround for this bug is to always add a parameter like `project_id` to the "queries" column.
+
+== Solution to the problem #3 [10/06/2017]
+User no longer needs to specify queries - only list meters, so this file is no longer needed.
+
+== Problem #4 [10/06/2017]
+Sending the hashed user token (SHA1) with the headers returns 401 (Unauthorised).

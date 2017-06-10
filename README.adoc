@@ -1,26 +1,23 @@
-== Launching a billable plan
+== Launching a billable stack
+You will need the `python-heatclient` installed to use the `stack` subcommand.
 
-You'll need to download terraform for this.
-https://www.terraform.io/downloads.html
+To launch a stack execute:
+-------
+openstack stack create --template /path/to/the/tester/billable_stack.yaml --parameter flavor=<flavor> --parameter key=<your-key> --parameter public_network=<external-network> <your-stack-name>
+-------
+NOTE: Only `key` is a required parameter - the remaining ones have default values working on our platform.
+Instead of writing passing the parameters from the command line, you can put them in a file and use the `--environment` flag.
 
-With terraform installed, execute this command to create all the resources in your project with your keypair:
--------
-/path/to/terraform apply -var 'key_pair=<your-keypair-name>'
--------
-This will use `dc1.1x1` as a flavour and `Ubuntu 16.04.2 LTS (Xenial)` as a image for instances created by the plan.
-You can change the default flavour and image by passing them as variables:
--------
-/path/to/terraform apply -var 'flavour_id=f0577618-9125-4948-b450-474e225bbc4c' -var 'image_id=73fb2fff-64bf-415f-82ec-b63bbb04b3cf' -var 'key_pair=<your-keypair-name>'
--------
-Substitute `apply` with `destroy` to clean up afterwards.
+This will create a Heat stack with all the billable resources.
 
 == Pulling meters
-This is the main script:
+Place the names of meters you want to check in the `required_meters.txt` - one in each line and run the main script passing the name or the ID of the stack you've created in the previous step:
 -------
-python show_billable_resources.py
+python show_billable_resources.py <your-stack-name>
 -------
-This will try and execute queries specified in the `queries.txt` file.
+You will see a list of meters retrieved for all the billable resources in your stack and the timestamp of the latest meter. Compare this output with you list of meters to see whether there are any missing entries.
+
 To get a more verbose output, add the `--verbose` flag:
 -------
-python show_billable_resources.py --verbose
+python show_billable_resources.py <your-stack-name> --verbose
 -------
