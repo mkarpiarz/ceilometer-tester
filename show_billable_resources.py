@@ -47,6 +47,7 @@ def main():
     resources = stack.get_resources_in_stack(stack_id)
     for res in resources:
         print res
+        print( ceilomar.get_meters_for_resource(res) )
 
     exit(0)
 

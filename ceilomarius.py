@@ -8,10 +8,13 @@ class Ceilomarius:
         self.token = token
         self.verbose = verbose
 
-    def get_metric(self, meter_name, q = [], limit = 10):
-        headers = {'User-Agent': 'ceilomarius',
+    def prepare_headers(self):
+        return {'User-Agent': 'ceilomarius',
                    'X-Auth-Token': str(self.token),
                    'Content-Type': 'application/json'}
+
+    def get_metric(self, meter_name, q = [], limit = 10):
+        headers = self.prepare_headers()
         query = {"limit": limit}
         if q:
             query["q"] = q
@@ -30,6 +33,15 @@ class Ceilomarius:
             print( "INFO: The whole operation took: %s [h:m:s.us]" % req.elapsed )
 
         return req
+
+    def get_meters_for_resource(self, resource, limit = 10):
+        headers = self.prepare_headers()
+        url = self.endpoint + '/v' + str(self.api_version) + '/resources/' + str(resource.id)
+        resp = requests.get(url = url, headers = headers)
+        links = resp.json().get('links')
+        if self.verbose:
+            print( "INFO: Links associated with url %s:" % url )
+            print( links )
 
 def main():
     ceilo = Ceilomarius(api_version = 2,
