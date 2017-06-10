@@ -1,8 +1,12 @@
 import os
 import credentials
 #import ceilometerclient.client
-import ceilomarius
 import argparse
+
+# Local libraries
+import ceilomarius
+import stacker
+import resource
 
 def main():
     if not os.environ.get('OS_CEILOMETER_URL'):
@@ -11,6 +15,7 @@ def main():
         exit(1)
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("stack_id", help="The ID or name of the stack with resources.")
     parser.add_argument("--verbose", help="increase output verbosity", action="store_true")
     args = parser.parse_args()
 
@@ -37,22 +42,40 @@ def main():
                                         token=token,
                                         verbose=verbose)
 
-    # read queries from a file
-    with open('queries.txt', 'r') as f:
-        header_line = f.readline()
+    stack_id = args.stack_id
+    stack = stacker.Stacker()
+    resources = stack.get_resources_in_stack(stack_id)
+    # stores every meter associated with resources from this stack
+    meters_all = dict()
+    for res in resources:
+        if verbose:
+            print( "INFO: Retrieved resource: %s" % res)
+        meters_all.update( ceilomar.get_meters_for_resource(res, limit=1) )
+    if verbose:
+        for key in meters_all.keys():
+            print( "INFO: All meters retrieved from the stack:")
+            print( "INFO: The main key: %s" % key )
+            print( "INFO: Values for this key:" )
+            for item in meters_all.get(key):
+                print( "INFO: counter_name: {}, resource_id: {}, timestamp: {}".format( item.get('counter_name'), item.get('resource_id'), item.get('timestamp') ) )
+
+    # variables for stats on the number of found meters
+    n_required = 0
+    n_found = 0
+    # read required meters from a file
+    with open('required_meters.txt', 'r') as f:
         for line in f:
-            query = []
-            (meter_name, limit, query_params) = line.strip().split('\t')
-            query_elems = query_params.split(',')
-            for item in query_elems:
-                (field, value) = item.split('=')
-                query.append({"field": field, "op": "eq", "value": value})
-            resp = ceilomar.get_metric(meter_name=meter_name, q=query, limit=int(limit))
-            if verbose:
-                print("DEBUG: The response:")
-                print( resp.json() )
-            for item in resp.json():
-                print( "meter: {meter},  resource_id: {resource_id}\nquery: {query}\ntimestamp: {timestamp}".format( meter=meter_name, resource_id=item.get('resource_id'), query=query, timestamp=item.get('timestamp') ) )
+            meter = line.strip()
+            if meter in meters_all:
+                for item in meters_all[meter]:
+                    print( "meter: {meter} -> timestamp: {timestamp}".format(meter=item.get('counter_name'), timestamp=item.get('timestamp')) )
+                    if verbose:
+                        print( "INFO: Resource metadata:" )
+                        print( "INFO: {}".format(item.get('resource_metadata')) )
+                n_found += 1
+            n_required += 1
+
+    print( "Found {} out of all {} meters!".format(n_found, n_required) )
 
 if __name__ == "__main__":
     main()

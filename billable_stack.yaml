@@ -1,0 +1,150 @@
+heat_template_version: 2015-04-30
+
+description: A simple template to create billable resources.
+
+parameters:
+  flavor:
+    type: string
+    label: Flavor
+    description: Type of instance (flavor) to be used
+    default: dc1.1x0
+  key:
+    type: string
+    label: Key name
+    description: Name of key-pair to be used for compute instance
+  public_network:
+    type: string
+    label: Public network name or ID
+    description: Public network with floating IP addresses.
+    default: external
+  cidr:
+    type: string
+    label: Network CIDR
+    description: The CIDR of the private network.
+    default: '10.10.10.0/24'
+  dns:
+    type: comma_delimited_list
+    label: DNS nameservers
+    description: Comma separated list of DNS nameservers for the private network.
+    default: '8.8.8.8'
+
+resources:
+# An image
+# WARNING: A resource deprecated in Ocata
+  my_image:
+    type: OS::Glance::Image
+    properties:
+      container_format: bare
+      disk_format: qcow2
+      location: http://www.download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
+      name: my_image
+
+# Router with a subnet
+  private_network:
+    type: OS::Neutron::Net
+
+  private_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: private_network }
+      cidr: { get_param: cidr }
+      dns_nameservers: { get_param: dns }
+
+  router:
+    type: OS::Neutron::Router
+    properties:
+      external_gateway_info:
+        network: { get_param: public_network }
+
+  router-interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: router }
+      subnet: { get_resource: private_subnet }
+
+# Port and Instance
+  flasky_port:
+    type: OS::Neutron::Port
+    properties:
+      network: { get_resource: private_network }
+
+  flasky_instance:
+    type: OS::Nova::Server
+    properties:
+      image: { get_resource: my_image }
+      flavor: { get_param: flavor }
+      key_name: { get_param: key }
+      networks:
+        - port: { get_resource: flasky_port }
+
+# Floating IP
+  floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_network }
+
+  floating_ip_assoc:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_resource: floating_ip }
+      port_id: { get_resource: flasky_port }
+
+# Volume
+  my_volume:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+
+# LBaaS v1
+  monitor:
+    type: OS::Neutron::HealthMonitor
+    properties:
+      type: TCP
+      delay: 5
+      max_retries: 5
+      timeout: 5
+  pool:
+    type: OS::Neutron::Pool
+    properties:
+      protocol: HTTP
+      monitors: [{ get_resource: monitor }]
+      subnet_id: { get_resource: private_subnet }
+      lb_method: ROUND_ROBIN
+      vip:
+        protocol_port: 80
+  lb:
+    type: OS::Neutron::LoadBalancer
+    properties:
+      protocol_port: 80
+      pool_id: { get_resource: pool }
+
+# VPNaaS v1
+  vpn_monitor:
+    type: OS::Neutron::VPNService
+    properties:
+      subnet_id: { get_resource: private_subnet }
+      router_id: { get_resource: router }
+    depends_on: [ private_subnet, router, router-interface ]
+  ipsecpolicy:
+    type: OS::Neutron::IPsecPolicy
+    properties:
+      description: An IPsec policy
+  ikepolicy:
+    type: OS::Neutron::IKEPolicy
+    properties:
+      description: An IKE policy
+  site_connection:
+    type: OS::Neutron::IPsecSiteConnection
+    properties:
+      ikepolicy_id: { get_resource: ikepolicy }
+      ipsecpolicy_id: { get_resource: ipsecpolicy }
+      peer_address: 8.8.8.8
+      peer_cidrs: [ 10.10.11.0/24 ]
+      peer_id: placeholder
+      psk: secret
+      vpnservice_id: { get_resource: vpn_monitor }
+
+#outputs:
+#  instance_ip:
+#    description: IP address of the instance
+#    value: { get_attr: [my_instance, first_address] }

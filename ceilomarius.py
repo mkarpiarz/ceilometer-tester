@@ -8,10 +8,13 @@ class Ceilomarius:
         self.token = token
         self.verbose = verbose
 
-    def get_metric(self, meter_name, q = [], limit = 10):
-        headers = {'User-Agent': 'ceilomarius',
+    def prepare_headers(self):
+        return {'User-Agent': 'ceilomarius',
                    'X-Auth-Token': str(self.token),
                    'Content-Type': 'application/json'}
+
+    def get_metric(self, meter_name, q = [], limit = 10):
+        headers = self.prepare_headers()
         query = {"limit": limit}
         if q:
             query["q"] = q
@@ -30,6 +33,34 @@ class Ceilomarius:
             print( "INFO: The whole operation took: %s [h:m:s.us]" % req.elapsed )
 
         return req
+
+    def get_meters_for_resource(self, resource, limit = 10):
+        headers = self.prepare_headers()
+        url = self.endpoint + '/v' + str(self.api_version) + '/resources/' + str(resource.id)
+        resp = requests.get(url = url, headers = headers)
+        # get a list of dicts with urls to meters:
+        links = resp.json().get('links')
+
+        if self.verbose:
+            print( "INFO: Links associated with url %s:" % url )
+            print( links )
+
+        # check whether we have get meters
+        if links:
+            query = [{"field": "resource_id", "op": "eq", "value": str(resource.id)}]
+            # this dict will store responses associated with the specific meter name
+            meters = dict()
+            for link in links:
+                # the name of the meter can be retrieved from the 'rel' key
+                rel = link.get('rel')
+                # ignore the reference to the original url (where rel == 'self'):
+                if rel != 'self':
+                    meters[rel] = self.get_metric(meter_name=rel, q=query, limit=limit).json()
+            return meters
+        else:
+            if self.verbose:
+                print( "WARNING: Empty list of links! Skipping the resource." )
+            return {}
 
 def main():
     ceilo = Ceilomarius(api_version = 2,
