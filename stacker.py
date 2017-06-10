@@ -3,7 +3,7 @@ import credentials
 import heatclient.client
 import resource
 
-class Heat:
+class Stacker:
     def __init__(self):
         if not os.environ.get('OS_HEAT_URL'):
             print("ERROR: $OS_HEAT_URL variable not set!")
@@ -26,15 +26,14 @@ class Heat:
         stack_resources = self.heat.resources.list(stack_id = stack_id)
         # a list of simpler Resource objects
         resources = [ resource.Resource(res.physical_resource_id, res.resource_type) for res in stack_resources ]
-        #return self.heat.resources.list(stack_id = stack_id)
         return resources
 
 def main():
-    heat = Heat()
-    stacks = heat.get_stacks()
+    stacker = Stacker()
+    stacks = stacker.get_stacks()
     for stack in stacks:
         print( stack )
-        resources = heat.get_resources_in_stack(stack.id)
+        resources = stacker.get_resources_in_stack(stack.id)
         for res in resources:
             print res
 
