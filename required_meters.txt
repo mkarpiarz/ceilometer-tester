@@ -1,5 +1,5 @@
 image
-image.create
+image.update
 instance
 ip.floating
 ip.floating.create

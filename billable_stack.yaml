@@ -3,11 +3,6 @@ heat_template_version: 2015-04-30
 description: A simple template to create billable resources.
 
 parameters:
-  image:
-    type: string
-    label: Image name or ID
-    description: Image to be used for compute instance
-    default: cirros-0.3.3-x86_64
   flavor:
     type: string
     label: Flavor
@@ -35,6 +30,16 @@ parameters:
     default: '8.8.8.8'
 
 resources:
+# An image
+# WARNING: A resource deprecated in Ocata
+  my_image:
+    type: OS::Glance::Image
+    properties:
+      container_format: bare
+      disk_format: qcow2
+      location: http://www.download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
+      name: my_image
+
 # Router with a subnet
   private_network:
     type: OS::Neutron::Net
@@ -67,7 +72,7 @@ resources:
   flasky_instance:
     type: OS::Nova::Server
     properties:
-      image: { get_param: image }
+      image: { get_resource: my_image }
       flavor: { get_param: flavor }
       key_name: { get_param: key }
       networks:
