@@ -45,9 +45,19 @@ def main():
     stack_id = args.stack_id
     stack = stacker.Stacker()
     resources = stack.get_resources_in_stack(stack_id)
+    # stores every meter associated with resources from this stack
+    meters_all = dict()
     for res in resources:
-        print res
-        print( ceilomar.get_meters_for_resource(res, limit=1) )
+        if verbose:
+            print( "INFO: Retrieved resource: %s" % res)
+        meters_all.update( ceilomar.get_meters_for_resource(res, limit=1) )
+    if verbose:
+        for key in meters_all.keys():
+            print( "INFO: All meters retrieved from the stack:")
+            print( "INFO: The main key: %s" % key )
+            print( "INFO: Values for this key:" )
+            for item in meters_all.get(key):
+                print( "INFO: counter_name: {}, resource_id: {}, timestamp: {}".format( item.get('counter_name'), item.get('resource_id'), item.get('timestamp') ) )
 
     exit(0)
 
