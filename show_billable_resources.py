@@ -1,8 +1,12 @@
 import os
 import credentials
 #import ceilometerclient.client
-import ceilomarius
 import argparse
+
+# Local libraries
+import ceilomarius
+import stacker
+import resource
 
 def main():
     if not os.environ.get('OS_CEILOMETER_URL'):
@@ -11,6 +15,7 @@ def main():
         exit(1)
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("stack_id", help="The ID or name of the stack with resources.")
     parser.add_argument("--verbose", help="increase output verbosity", action="store_true")
     args = parser.parse_args()
 
@@ -36,6 +41,14 @@ def main():
                                         endpoint=os.environ['OS_CEILOMETER_URL'],
                                         token=token,
                                         verbose=verbose)
+
+    stack_id = args.stack_id
+    stack = stacker.Stacker()
+    resources = stack.get_resources_in_stack(stack_id)
+    for res in resources:
+        print res
+
+    exit(0)
 
     # read queries from a file
     with open('queries.txt', 'r') as f:
