@@ -35,9 +35,16 @@ class Ceilomarius:
         return req
 
     def get_meters_for_resource(self, resource, limit = 10):
+        # skip those weird resources with empty IDs
+        if not resource.id:
+            if self.verbose:
+                print( "WARNING: Wrong resource ID {}. Skipping.".format(resource.id) )
+            return {}
+
         headers = self.prepare_headers()
         url = self.endpoint + '/v' + str(self.api_version) + '/resources/' + str(resource.id)
         resp = requests.get(url = url, headers = headers)
+
         # get a list of dicts with urls to meters:
         links = resp.json().get('links')
 
