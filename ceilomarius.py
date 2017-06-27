@@ -69,6 +69,27 @@ class Ceilomarius:
                 print( "WARNING: Empty list of links! Skipping the resource." )
             return {}
 
+    def get_statistics(self, meter_name, q = []):
+        query = {}
+        headers = self.prepare_headers()
+        if q:
+            query["q"] = q
+        url = self.endpoint + '/v' + str(self.api_version) + '/meters/' + meter_name + '/statistics'
+        if self.verbose:
+            print( "INFO: Parameters of the request:" )
+            print( "INFO: > url: %s" % url )
+            print( "INFO: > headers: %s" % headers )
+            print( "INFO: > query: %s" % query )
+
+        req = requests.get(url = url, json = query, headers = headers)
+
+        if self.verbose:
+            print( "INFO: Got the response: {} [{}] at {}".format(req.status_code, req.reason, req.headers.get('date')) )
+            print( "INFO: Your request ID: %s" % req.headers.get('x-openstack-request-id') )
+            print( "INFO: The whole operation took: %s [h:m:s.us]" % req.elapsed )
+
+        return req
+
 def main():
     ceilo = Ceilomarius(api_version = 2,
                         endpoint = os.environ['OS_CEILOMETER_URL'],
@@ -77,6 +98,8 @@ def main():
 
     query = [{"field": "metadata.event_type", "op": "eq", "value": "compute.instance.exists"}]
     print( ceilo.get_metric(meter_name="instance", q=query, limit=1).json() )
+
+    print( ceilo.get_statistics(meter_name="instance", q=query).json() )
 
 if __name__ == "__main__":
     main()
