@@ -4,11 +4,12 @@ from datetime import datetime, timedelta
 import argparse
 
 class Paginator:
-    def __init__(self, endpoint, token):
+    def __init__(self, endpoint, token, verbose = False):
         ceilo = ceilomarius.Ceilomarius(api_version = 2,
                             endpoint = endpoint,
                             token = token,
-                            verbose = False)
+                            verbose = verbose)
+        self.verbose = verbose
         self.ceilo = ceilo
 
     def convert_date(self, date):
@@ -32,7 +33,8 @@ class Paginator:
         # aggregate all retrieved samples in this list:
         samples_all = []
         while time_earliest >= time_begin:
-            print( "INFO: Latest timestamp on the page: {}".format(self.convert_date(time_earliest)) )
+            if self.verbose:
+                print( "INFO: Latest timestamp on the page: {}".format(self.convert_date(time_earliest)) )
             query = [{"field": "resource_id", "op": "eq", "value": instance_id}, {"field": "timestamp", "op": "ge", "value": self.convert_date(time_begin)}, {"field": "timestamp", "op": "lt", "value": self.convert_date(time_earliest)}]
             #print( self.ceilo.get_statistics(meter_name="instance", q=query, count_only=True).json() )
             samples = self.ceilo.get_metric(meter_name="instance", q=query, limit=limit).json()
@@ -57,7 +59,8 @@ def main():
     instance_id = args.instance_id
 
     pag = Paginator(endpoint = os.environ['OS_CEILOMETER_URL'],
-                    token = os.environ['OS_TOKEN'])
+                    token = os.environ['OS_TOKEN'],
+                    verbose = True)
 
     t_end = datetime.now()
     t_begin = t_end - timedelta(days=10)
