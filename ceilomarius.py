@@ -69,12 +69,17 @@ class Ceilomarius:
                 print( "WARNING: Empty list of links! Skipping the resource." )
             return {}
 
-    def get_statistics(self, meter_name, q = []):
+    def get_statistics(self, meter_name, q = [], count_only = False):
+        """Returns statistics for a given query q
+
+        Arguments:
+        count_only -- set to True to only return the number of records.
+        """
         query = {}
         headers = self.prepare_headers()
         if q:
             query["q"] = q
-        url = self.endpoint + '/v' + str(self.api_version) + '/meters/' + meter_name + '/statistics'
+        url = self.endpoint + '/v' + str(self.api_version) + '/meters/' + meter_name + ('/statistics?aggregate.func=count' if count_only else '/statistics')
         if self.verbose:
             print( "INFO: Parameters of the request:" )
             print( "INFO: > url: %s" % url )
