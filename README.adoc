@@ -1,3 +1,6 @@
+== Configuration
+To set configuration options, copy the `config.cfg.example` file to `config.cfg` and insert correct values.
+
 == Launching a billable stack
 You will need the `python-heatclient` installed to use the `stack` subcommand.
 

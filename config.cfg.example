@@ -1,0 +1,6 @@
+[mongo]
+host = <mongo-host>
+port = 27017
+database = <database-name>
+username = <database-user>
+password = <user-password>
