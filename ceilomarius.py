@@ -28,7 +28,7 @@ class Ceilomarius:
         req = requests.get(url = url, json = query, headers = headers)
 
         if self.verbose:
-            print( "INFO: Got the response: {} [{}] at {}".format(req.status_code, req.reason, req.headers.get('date')) )
+            print( "INFO: Got the response: {} [{}] on {}".format(req.status_code, req.reason, req.headers.get('date')) )
             print( "INFO: Your request ID: %s" % req.headers.get('x-openstack-request-id') )
             print( "INFO: The whole operation took: %s [h:m:s.us]" % req.elapsed )
 

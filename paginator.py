@@ -18,7 +18,7 @@ class Paginator:
     def convert_timestamp(self, timestamp):
         return datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%f")
 
-    def get_meters_for_instance(self, instance_id, time_begin, time_end, limit = 100):
+    def get_samples_for_instance(self, instance_id, time_begin, time_end, limit = 100):
         """Returns samples for specified instance divided into pages.
 
         Attributes:
@@ -53,7 +53,7 @@ class Paginator:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("instance_id", help="The name of the instance to fetch meters for.")
+    parser.add_argument("instance_id", help="The name of the instance to fetch samples for.")
     args = parser.parse_args()
 
     instance_id = args.instance_id
@@ -62,11 +62,11 @@ def main():
                     token = os.environ['OS_TOKEN'],
                     verbose = True)
 
-    t_end = datetime.now()
+    t_end = datetime.utcnow()
     t_begin = t_end - timedelta(days=10)
-    print("INFO: Retrieving objects from {} to {}".format(pag.convert_date(t_begin), pag.convert_date(t_end)))
+    print("INFO: Retrieving samples from {} to {}".format(pag.convert_date(t_begin), pag.convert_date(t_end)))
 
-    samples = pag.get_meters_for_instance(instance_id, t_begin, t_end)
+    samples = pag.get_samples_for_instance(instance_id, t_begin, t_end)
     if samples:
         print("INFO: Retrieved {} samples.".format(len(samples)))
 
