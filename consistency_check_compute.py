@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import argparse
 import credentials
 import config
+import pprint
 
 def compare_samples(samples_api, samples_db, verbose=False):
     # First compare sizes of lists with samples
@@ -22,7 +23,6 @@ def compare_samples(samples_api, samples_db, verbose=False):
     dict_samples_api = {}
     for i in xrange( 0, len(samples_api) ):
         dict_samples_api[samples_api[i]['message_id']] = i
-    print( len(dict_samples_api) )
 
     # Go through the list of samples from the database
     # and check which ones are not in the dict from API
@@ -33,12 +33,23 @@ def compare_samples(samples_api, samples_db, verbose=False):
         if not dict_samples_api.get(samples_db[i]['message_id']):
             missing_in_api.append(samples_db[i])
         dict_samples_db[samples_db[i]['message_id']] = i
-    print( len(dict_samples_db) )
 
     print( "INFO: Number of samples missing in the api: {}".format(len(missing_in_api)) )
     if verbose:
         print("INFO: Here are the missing items:")
         print(missing_in_api)
+
+def extract_events_from_samples(samples):
+    """Extracts event-based samples from a list of samples.
+    """
+    # a list of event-based samples
+    event_samples = []
+
+    for sample in samples:
+        if sample.get('resource_metadata') and sample['resource_metadata'].get('event_type'):
+            event_samples.append(sample)
+
+    return event_samples
 
 
 def main():
@@ -73,6 +84,14 @@ def main():
     samples_db = mon.get_samples_for_instance(instance_id, time_begin, time_end)
 
     compare_samples(samples_api, samples_db, verbose)
+    event_samples = extract_events_from_samples(samples_db)
+
+    if verbose:
+        print("INFO: All the event-based samples:")
+        for event in event_samples:
+            pprint.pprint(event)
+            print("----------------")
+    print("INFO: There are {} event-based samples.".format(len(event_samples)) )
 
 if __name__ == "__main__":
     main()
