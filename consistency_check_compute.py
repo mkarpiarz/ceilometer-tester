@@ -23,7 +23,13 @@ def compare_samples(samples_api, samples_db, verbose=False):
     # Prepare a dictionary for samples from API
     dict_samples_api = {}
     for i in xrange( 0, len(samples_api) ):
-        dict_samples_api[samples_api[i]['message_id']] = i
+        message_id = samples_api[i].get('message_id')
+        if message_id:
+            dict_samples_api[message_id] = i
+        else:
+            if verbose:
+                print("WARNING: Dropping a sample without a message ID:")
+                pprint.pprint(samples_api[i])
 
     # Go through the list of samples from the database
     # and check which ones are not in the dict from API
@@ -31,9 +37,16 @@ def compare_samples(samples_api, samples_db, verbose=False):
     dict_samples_db = {}
     missing_in_api = []
     for i in xrange( 0, len(samples_db) ):
-        if not dict_samples_api.get(samples_db[i]['message_id']):
-            missing_in_api.append(samples_db[i])
-        dict_samples_db[samples_db[i]['message_id']] = i
+        message_id = samples_db[i].get('message_id')
+        if message_id:
+            dict_samples_db[message_id] = i
+            # if a sample with current message ID is not in the dict from the API, it's missing
+            if not dict_samples_api.get(message_id):
+                missing_in_api.append(samples_db[i])
+        else:
+            if verbose:
+                print("WARNING: Dropping a sample without a message ID:")
+                pprint.pprint(samples_db[i])
 
     print( "INFO: Number of samples missing in the api: {}".format(len(missing_in_api)) )
     if verbose:
