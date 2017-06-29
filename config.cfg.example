@@ -4,3 +4,5 @@ port = 27017
 database = <database-name>
 username = <database-user>
 password = <user-password>
+[ceilometer]
+endpoint = https://compute.datacentred.io:8777
