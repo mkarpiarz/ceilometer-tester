@@ -5,6 +5,7 @@ import argparse
 import credentials
 import config
 import pprint
+import collections
 
 def compare_samples(samples_api, samples_db, verbose=False):
     # First compare sizes of lists with samples
@@ -44,10 +45,16 @@ def extract_events_from_samples(samples):
     """
     # a list of event-based samples
     event_samples = []
+    # a histogram of events
+    events_hist = collections.defaultdict(int)
 
     for sample in samples:
         if sample.get('resource_metadata') and sample['resource_metadata'].get('event_type'):
             event_samples.append(sample)
+            events_hist[sample['resource_metadata']['event_type']] += 1
+
+    print("INFO: Histogram of events:")
+    pprint.pprint( dict(events_hist) )
 
     return event_samples
 
@@ -91,7 +98,7 @@ def main():
         for event in event_samples:
             pprint.pprint(event)
             print("----------------")
-    print("INFO: There are {} event-based samples.".format(len(event_samples)) )
+    print( "INFO: There are {} event-based samples.".format(len(event_samples)) )
 
 if __name__ == "__main__":
     main()
