@@ -41,7 +41,7 @@ def compare_samples(samples_api, samples_db, verbose=False):
         if message_id:
             dict_samples_db[message_id] = i
             # if a sample with current message ID is not in the dict from the API, it's missing
-            if not dict_samples_api.get(message_id):
+            if dict_samples_api.get(message_id) is None:
                 missing_in_api.append(samples_db[i])
         else:
             if verbose:
