@@ -27,24 +27,35 @@ class Paginator:
         # TODO: Make sure returned results are sorted by timestamps as expected
         # and there is nothing missing missing between pages.
 
-        # the last timestamp on the list (the earliest)
-        time_earliest = time_end
+        # the last timestamp on the list (the oldest)
+        time_oldest = time_end
 
         # aggregate all retrieved samples in this list:
         samples_all = []
-        while time_earliest >= time_begin:
+        """
+        EXPLANATION:
+        This procedure fetches a number of samples specified by the `limit` parameter
+        from within the specified period, then extracts the timestamp of the oldest
+        sample in the batch and sends another query for a "limit" number of samples
+        oldest then the one selected previously and repeats until there are no new
+        samples. The resulting list includes all the samples from the period.
+        This approach prevents creating long running queries that may not end
+        before the resulting cursor times out.
+        """
+        while time_oldest >= time_begin:
             if self.verbose:
-                print( "INFO: Latest timestamp on the page: {}".format(self.convert_date(time_earliest)) )
-            query = [{"field": "resource_id", "op": "eq", "value": instance_id}, {"field": "timestamp", "op": "ge", "value": self.convert_date(time_begin)}, {"field": "timestamp", "op": "lt", "value": self.convert_date(time_earliest)}]
-            #print( self.ceilo.get_statistics(meter_name="instance", q=query, count_only=True).json() )
+                print( "INFO: Oldest timestamp on this page: {}".format(self.convert_date(time_oldest)) )
+            query = [{"field": "resource_id", "op": "eq", "value": instance_id},
+                        {"field": "timestamp", "op": "ge", "value": self.convert_date(time_begin)},
+                        {"field": "timestamp", "op": "lt", "value": self.convert_date(time_oldest)}]
             samples = self.ceilo.get_metric(meter_name="instance", q=query, limit=limit).json()
             # break if there are no more samples
             if not samples:
                 break
-            # get the earliest timestamp
-            sample_earliest = samples[-1]
+            # get the oldest timestamp
+            sample_oldest = samples[-1]
 
-            time_earliest = self.convert_timestamp( sample_earliest.get('timestamp') )
+            time_oldest = self.convert_timestamp( sample_oldest.get('timestamp') )
             # now append samples from this page to the total list
             samples_all += samples
 

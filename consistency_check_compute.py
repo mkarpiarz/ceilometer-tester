@@ -18,40 +18,44 @@ def compare_samples(samples_api, samples_db, verbose=False):
     if len_api == len_db:
         print( "INFO: [SUCCESS] Numbers of samples ({}) match!".format(len_db) )
     else:
-        print( "WARNING: [FAILURE] Number of samples from API ({}) and from the database {} don't match.".format(len_api, len_db) )
+        print( "WARNING: [FAILURE] Number of samples from API ({}) and from the database ({}) don't match.".format(len_api, len_db) )
 
     # Prepare a dictionary for samples from API
     dict_samples_api = {}
-    for i in xrange( 0, len(samples_api) ):
+    for i in xrange( 0, len_api ):
         message_id = samples_api[i].get('message_id')
         if message_id:
             dict_samples_api[message_id] = i
         else:
+            print("WARNING: Dropping a sample without a message ID!")
             if verbose:
-                print("WARNING: Dropping a sample without a message ID:")
                 pprint.pprint(samples_api[i])
 
-    # Go through the list of samples from the database
-    # and check which ones are not in the dict from API
-    # (also stores the dict of samples from db for reference)
+    """
+    Go through the list of samples from the database and check which ones
+    are not in the dict from API.
+    (also stores the dict of samples from db for reference)
+    """
     dict_samples_db = {}
-    missing_in_api = []
-    for i in xrange( 0, len(samples_db) ):
+    # a list of samples that are in the database but not in the results from API
+    missing_from_api = []
+    for i in xrange( 0, len_db ):
         message_id = samples_db[i].get('message_id')
         if message_id:
             dict_samples_db[message_id] = i
             # if a sample with current message ID is not in the dict from the API, it's missing
             if dict_samples_api.get(message_id) is None:
-                missing_in_api.append(samples_db[i])
+                missing_from_api.append(samples_db[i])
         else:
+            print("WARNING: Dropping a sample without a message ID!")
             if verbose:
-                print("WARNING: Dropping a sample without a message ID:")
                 pprint.pprint(samples_db[i])
 
-    print( "INFO: Number of samples missing in the api: {}".format(len(missing_in_api)) )
+    len_missing_api = len(missing_from_api)
+    print( "INFO: {} Number of samples missing in the api: {}".format("[SUCCESS]" if len_missing_api == 0 else "[FAILURE]", len_missing_api) )
     if verbose:
         print("INFO: Here are the missing items:")
-        print(missing_in_api)
+        print(missing_from_api)
 
 def extract_events_from_samples(samples):
     """Extracts event-based samples from a list of samples.
@@ -66,8 +70,11 @@ def extract_events_from_samples(samples):
             event_samples.append(sample)
             events_hist[sample['resource_metadata']['event_type']] += 1
 
-    print("INFO: Histogram of events:")
-    pprint.pprint( dict(events_hist) )
+    print("INFO: Event types tallied up:")
+    print(15*"*")
+    for key,value in events_hist.iteritems():
+        print( "{}: \t {}".format(key,value) )
+    print(15*"*")
 
     return event_samples
 

@@ -18,7 +18,6 @@ class Mongor:
                                                 { "$gte": time_begin,
                                                     "$lt": time_end }
                                         }).batch_size(batch_size).sort('timestamp', pymongo.DESCENDING)
-        print( cursor.cursor_id )
         return [c for c in cursor]
 
 def main():
