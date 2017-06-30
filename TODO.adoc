@@ -6,3 +6,6 @@ Add a function to pull meters - similar to the one for samples.
 
 == TODO #3 [3/06/2017]
 Implement a routine to measure time needed for queries to return.
+
+== TODO #4 [28/06/2017]
+Get all the config options -- like endpoints, a token -- from the config file instead of passing them as variables.

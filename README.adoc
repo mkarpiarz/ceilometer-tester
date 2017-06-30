@@ -1,3 +1,6 @@
+== Configuration
+To set configuration options, copy the `config.cfg.example` file to `config.cfg` and insert correct values.
+
 == Launching a billable stack
 You will need the `python-heatclient` installed to use the `stack` subcommand.
 
@@ -13,11 +16,16 @@ This will create a Heat stack with all the billable resources.
 == Pulling meters
 Place the names of meters you want to check in the `required_meters.txt` - one in each line and run the main script passing the name or the ID of the stack you've created in the previous step:
 -------
-python show_billable_resources.py <your-stack-name>
+python show_billable_resources.py <your-stack-name> [--verbose]
 -------
 You will see a list of meters retrieved for all the billable resources in your stack and the timestamp of the latest meter. Compare this output with you list of meters to see whether there are any missing entries.
 
-To get a more verbose output, add the `--verbose` flag:
+== Consistency check for compute resources
+A module for checking consistency of data retrieved from the database and through the Ceilometer's `meters` APIs is available. The module also extracts event-based samples.
+To run the check, execute:
 -------
-python show_billable_resources.py <your-stack-name> --verbose
+python consistency_check_compute.py <instance-id> [--verbose]
 -------
+The argument is the UUID of the instance one wants to check consistency of data for. This works for currently existing instances as well as for recently removed ones.
+
+NOTE: This module requires credentials for Mongo DB and they need to be provided in the `config.cfg` file.
