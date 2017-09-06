@@ -27,6 +27,11 @@ parameters:
     label: DNS nameservers
     description: Comma separated list of DNS nameservers for the private network.
     default: '8.8.8.8'
+  ha:
+    type: boolean
+    label: HA router
+    description: Whether to create a HA router.
+    default: False
 
 resources:
 # An image
@@ -55,6 +60,7 @@ resources:
     properties:
       external_gateway_info:
         network: { get_param: public_network }
+      ha: { get_param: ha }
 
   router-interface:
     type: OS::Neutron::RouterInterface
